@@ -1,34 +1,31 @@
-﻿using System.Collections;
+﻿using DiagnosticSourceDemo.Attributes;
 using System.Collections.Generic;
 using System.Reflection;
-using DiagnosticSourceDemo.Attributes;
 
 namespace DiagnosticSourceDemo.Processors
 {
-    internal class DiagnosticEventCollection : IEnumerable<DiagnosticEvent>
+    internal class DiagnosticEventCollection
     {
-        private readonly List<DiagnosticEvent> _events;
+        private readonly Dictionary<string, DiagnosticEvent> _eventDict = new Dictionary<string, DiagnosticEvent>();
 
         public DiagnosticEventCollection(IDiagnosticProcessor diagnosticProcessor)
         {
-            _events = new List<DiagnosticEvent>();
             foreach (var method in diagnosticProcessor.GetType().GetMethods())
             {
                 var diagnosticName = method.GetCustomAttribute<DiagnosticNameAttribute>();
                 if (diagnosticName == null)
                     continue;
-                _events.Add(new DiagnosticEvent(diagnosticProcessor, method, diagnosticName.Name));
+                _eventDict.Add(diagnosticName.Name, new DiagnosticEvent(diagnosticProcessor, method));
             }
         }
 
-        public IEnumerator<DiagnosticEvent> GetEnumerator()
+        public DiagnosticEvent GetDiagnosticEvent(string name)
         {
-            return _events.GetEnumerator();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return _events.GetEnumerator();
+            if (_eventDict.ContainsKey(name))
+            {
+                return _eventDict[name];
+            }
+            return null;
         }
     }
 }

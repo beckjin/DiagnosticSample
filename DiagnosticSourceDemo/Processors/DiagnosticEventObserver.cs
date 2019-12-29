@@ -24,19 +24,16 @@ namespace DiagnosticSourceDemo.Processors
 
         public void OnNext(KeyValuePair<string, object> value)
         {
-            foreach (var @event in _eventCollection)
+            var diagnosticEvent = _eventCollection.GetDiagnosticEvent(value.Key);
+            if (diagnosticEvent == null) return;
+
+            try
             {
-                try
-                {
-                    if(@event.Invoke(value.Key, value.Value))
-                    {
-                        break;
-                    }
-                }
-                catch (Exception exception)
-                {
-                    Console.WriteLine(exception.Message);
-                }
+                diagnosticEvent.Invoke(value.Value);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
             }
         }
     }

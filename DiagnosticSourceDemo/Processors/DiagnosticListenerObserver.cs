@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 
 namespace DiagnosticSourceDemo.Processors
 {
@@ -27,17 +28,11 @@ namespace DiagnosticSourceDemo.Processors
 
         public void OnNext(DiagnosticListener value)
         {
-            if (_diagnosticProcessors == null) return;
+            var diagnosticProcessor = _diagnosticProcessors?.FirstOrDefault(_ => _.ListenerName == value.Name);
+            if (diagnosticProcessor == null) return;
 
-            foreach (var diagnosticProcessor in _diagnosticProcessors)
-            {
-                if (value.Name == diagnosticProcessor.ListenerName)
-                {
-                    var subscription = value.Subscribe(new DiagnosticEventObserver(diagnosticProcessor));
-                    _subscriptions.Add(subscription);
-                    break;
-                }
-            }
+            var subscription = value.Subscribe(new DiagnosticEventObserver(diagnosticProcessor));
+            _subscriptions.Add(subscription);
         }
     }
 }

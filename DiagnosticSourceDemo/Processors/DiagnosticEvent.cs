@@ -1,34 +1,26 @@
 ﻿using AspectCore.Extensions.Reflection;
+using DiagnosticSourceDemo.Attributes;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using DiagnosticSourceDemo.Attributes;
 
 namespace DiagnosticSourceDemo.Processors
 {
     internal class DiagnosticEvent
     {
         private readonly IDiagnosticProcessor _diagnosticProcessor;
-        private readonly string _diagnosticName;
         private readonly IParameterResolver[] _parameterResolvers;
         private readonly MethodReflector _reflector;
 
-        public DiagnosticEvent(IDiagnosticProcessor diagnosticProcessor, MethodInfo method,
-            string diagnosticName)
+        public DiagnosticEvent(IDiagnosticProcessor diagnosticProcessor, MethodInfo method)
         {
             _diagnosticProcessor = diagnosticProcessor;
             _reflector = method.GetReflector();
-            _diagnosticName = diagnosticName;
             _parameterResolvers = GetParameterResolvers(method).ToArray();
         }
 
-        public bool Invoke(string diagnosticName, object value)
+        public void Invoke(object value)
         {
-            if (_diagnosticName != diagnosticName)
-            {
-                return false;
-            }
-
             var args = new object[_parameterResolvers.Length];
             for (var i = 0; i < _parameterResolvers.Length; i++)
             {
@@ -36,8 +28,6 @@ namespace DiagnosticSourceDemo.Processors
             }
 
             _reflector.Invoke(_diagnosticProcessor, args);
-
-            return true;
         }
 
         private static IEnumerable<IParameterResolver> GetParameterResolvers(MethodInfo methodInfo)
